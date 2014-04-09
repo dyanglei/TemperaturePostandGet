@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Post Temperature</title>
+
+</head>
+<body>
+<div id="demo" class="yui3-skin-sam yui3-g yui3-u"> <!-- You need this skin class -->
+      <div id="mycalendar"></div>  
+</div><br><br>
+Temperature: <input type="text" id="input"><br>
+<button id="mybutton">Post Temperature</button><br>
+<p>Response: <span id="response"></span></p>
+
+<style>
+#mybutton {
+    margin:10px 0px 10px 0px;
+    color: #fff;
+    background-color: #3476b7;
+}
+</style>
+
+
+<script src="http://yui.yahooapis.com/3.15.0/build/yui/yui-min.js"></script>
+<script>
+YUI().use("node","datasource-io","calendar","datatype-date","cssbutton", function(Y){ 
+    var calendar = new Y.Calendar({
+      contentBox: "#mycalendar",
+      width:'340px',
+      showPrevMonth: true,
+      showNextMonth: true,
+      date: new Date()}).render();
+	
+	var dtdate = Y.DataType.Date;
+	var newDate;
+	calendar.on("selectionChange", function (ev) {      
+       newDate= ev.newSelection[0];
+ 
+    });
+
+	    
+    var myDataSource = new Y.DataSource.IO({source:"postTemp.php"});
+	var myCallback = {
+            success: function(e){			    
+                Y.one("#response").set('text',"Posted Successfully;");
+				
+            },
+            failure: function(e){
+                Y.one('#response').set('text',"Could not post data: " + e.error.message);
+            }
+        };
+	
+	Y.one("#mybutton").on("click",function(e){
+	
+	myDataSource.sendRequest({
+        request:"?time="+dtdate.format(newDate)+"&temperature="+Y.one('#input').get('value'),
+        callback:myCallback
+    });
+	});
+    
+});
+</script>
+</body>
+</html>

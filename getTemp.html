@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Get Temperature</title>
+
+
+</head>
+<body>
+<style>  
+   #mychart {width:600px; height:300px;}   
+</style>
+<button id="mybutton">Get Temperature</button><br>
+<div id="mychart"></div>
+Start :<select id="start">  
+</select>
+End: <select id="end">
+</select>
+<button id="update">Update Chart</button>
+
+<script src="http://yui.yahooapis.com/3.15.0/build/yui/yui-min.js"></script>
+<script>
+YUI().use("node","datasource-io", "datasource-xmlschema","charts", function(Y) {
+    
+   var myDataSource = new Y.DataSource.IO({source:"getTemp.php"});
+	myDataSource.plug(Y.Plugin.DataSourceXMLSchema, {
+        schema: {
+            resultListLocator: "entry",
+            resultFields: [
+			
+			{key:"temperature"},{key:"time"}
+			
+			]
+        }
+    });
+	var myChart=new Y.Chart({
+	horizontalGridlines: {
+                            styles: {
+                                line: {
+                                    color: "#dad8c9"
+                                }
+                            }
+                        },
+    verticalGridlines: {
+                            styles: {
+                                line: {
+                                    color: "#dad8c9"
+                                }
+                            }
+                        },
+	axes:{
+        temperature:{
+            keys:["temperature"],
+            position:"right",
+            type:"numeric",
+            styles:{
+                majorTicks:{
+                    display: "none"
+                }
+            }
+        },
+        time:{
+            keys:["time"],
+            position:"bottom",
+            type:"category",
+            styles:{
+                majorTicks:{
+                    display: "none"
+                },
+                label: {
+                    rotation:-45,
+                    margin:{top:5}
+                }
+            }
+        }
+    }
+	});
+    var myCallback = {
+            success: function(e){
+			    
+                myChart.set('dataProvider', e.response.results);
+				myChart.render("#mychart");
+				console.log(e.response.results);
+				var results=e.response.results;
+				var content="";
+				for (var i=0; i<results.length; i++){
+				content+='<option>'+results[i].time+'</option>';				
+				}
+				Y.one("#start").setContent(content);
+				Y.one("#end").setContent(content);
+            },
+            failure: function(e){
+                alert("Could not retrieve data: " + e.error.message);
+            }
+        };
+		
+    var myCallback2 = {
+            success: function(e){
+			    
+                myChart.set('dataProvider', e.response.results);
+				myChart.render("#mychart");
+				console.log(e.response.results);
+				
+            },
+            failure: function(e){
+                alert("Could not retrieve data: " + e.error.message);
+            }
+        };
+
+    var button = Y.one('#mybutton');
+	button.on("click",function(e){
+	myDataSource.sendRequest({
+        callback:myCallback
+    });
+	});
+	
+	Y.one("#update").on("click",function(e){
+	myDataSource.sendRequest({
+        request:"?start="+Y.one('#start').get('options').item(Y.one('#start').get('selectedIndex')).get('text')+"&end="+Y.one('#end').get('options').item(Y.one('#end').get('selectedIndex')).get('text'),
+        callback:myCallback2
+    });
+	});
+    
+});
+</script>
+</body>
+</html>
